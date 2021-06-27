@@ -1,5 +1,3 @@
-#include "crashreport.h"
-
 volatile int number = 0xbeef;
 
 void setup() {

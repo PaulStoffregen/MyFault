@@ -1,5 +1,3 @@
-#include "crashreport.h"
-
 #pragma GCC optimize ("O0")
 
 void setup() {
