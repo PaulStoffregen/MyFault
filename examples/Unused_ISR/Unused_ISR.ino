@@ -4,6 +4,7 @@ void setup() {
   Serial.print(CrashReport);
 
   //Call an unused interrupt vector
+  NVIC_ENABLE_IRQ(IRQ_Reserved1);
   NVIC_SET_PENDING(IRQ_Reserved1);
 }
 
