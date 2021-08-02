@@ -4,9 +4,9 @@
 extern "C" uint32_t set_arm_clock(uint32_t frequency); // clockspeed.c
 
 static int16_t frequency = 0x03U;
-static int32_t highAlarmTemp   = 85U;
+static int32_t highAlarmTemp   = 50U;
 static int32_t lowAlarmTemp    = 25U;
-static int32_t panicAlarmTemp  = 110U;
+static int32_t panicAlarmTemp  = 90U;
 volatile bool TempAlarm = false;
 
 void setup() {
