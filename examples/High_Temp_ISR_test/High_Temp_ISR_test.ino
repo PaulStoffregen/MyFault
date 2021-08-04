@@ -3,10 +3,10 @@
 
 extern "C" uint32_t set_arm_clock(uint32_t frequency); // clockspeed.c
 
-static uint16_t frequency = 0x03U;
-static uint32_t highAlarmTemp   = 50U;
-static uint32_t lowAlarmTemp    = 25U;
-static uint32_t panicAlarmTemp  = 55U;
+static int16_t frequency = 0x03U;
+static int32_t highAlarmTemp   = 50U;
+static int32_t lowAlarmTemp    = 25U;
+static int32_t panicAlarmTemp  = 55U;
 volatile bool TempAlarm = false;
 
 void setup() {
@@ -43,8 +43,8 @@ void loop() {
   }
 }
 
-static uint32_t s_hotTemp, s_hotCount, s_roomC_hotC;
-static float s_hot_ROOM;
+static uint32_t s_hotTemp, s_hotCount ;
+static float s_hot_ROOM, s_roomC_hotC;
 
 void tempmon_setup(void)
 {
@@ -54,8 +54,10 @@ void tempmon_setup(void)
 
   //first power on the temperature sensor - no register change 
   //power is already on so uncomment for example
-  TEMPMON_TEMPSENSE0 &= ~0x1U;
+  //TEMPMON_TEMPSENSE0 &= ~0x1U;
 
+  //Stop current temp monitoring
+  TEMPMON_TEMPSENSE0 &= ~0x2U;
   //set monitoring frequency - no register change
   TEMPMON_TEMPSENSE1 = (((uint32_t)(((uint32_t)(frequency)) << 0U)) & 0xFFFFU);
   
@@ -64,20 +66,23 @@ void tempmon_setup(void)
     s_hotTemp = (uint32_t)(calibrationData & 0xFFU) >> 0x00U;
     s_hotCount = (uint32_t)(calibrationData & 0xFFF00U) >> 0X08U;
     roomCount = (uint32_t)(calibrationData & 0xFFF00000U) >> 0x14U;
-    s_hot_ROOM = s_hotTemp - 25.0f;
-    s_roomC_hotC = roomCount - s_hotCount;
+    s_hot_ROOM = (float) (s_hotTemp) - 25.0f;
+    s_roomC_hotC = (float) roomCount - (float) s_hotCount;
 
     //time to set alarm temperatures
   //Set High Alarm Temp
-  tempCodeVal = (uint32_t)(s_hotCount + (s_hotTemp - highAlarmTemp) * s_roomC_hotC / s_hot_ROOM);
+  tempCodeVal = ((float)s_hotCount + ((float)s_hotTemp - highAlarmTemp) * s_roomC_hotC / s_hot_ROOM);
     TEMPMON_TEMPSENSE0 |= (((uint32_t)(((uint32_t)(tempCodeVal)) << 20U)) & 0xFFF00000U);
   
   //Set Panic Alarm Temp
-  tempCodeVal = (uint32_t)(s_hotCount + (s_hotTemp - panicAlarmTemp) * s_roomC_hotC / s_hot_ROOM);
+  tempCodeVal = ((float)s_hotCount + ((float)s_hotTemp - panicAlarmTemp) * s_roomC_hotC / s_hot_ROOM);
     TEMPMON_TEMPSENSE2 |= (((uint32_t)(((uint32_t)(tempCodeVal)) << 16U)) & 0xFFF0000U);
   
   // Set Low Temp Alarm Temp
-  tempCodeVal = (uint32_t)(s_hotCount + (s_hotTemp - lowAlarmTemp) * s_roomC_hotC / s_hot_ROOM);
+  tempCodeVal = ((float)s_hotCount + ((float)s_hotTemp - lowAlarmTemp) * s_roomC_hotC / s_hot_ROOM);
+    TEMPMON_TEMPSENSE2 |= (((uint32_t)(((uint32_t)(tempCodeVal)) << 0U)) & 0xFFFU);
+  // Set Low Temp Alarm Temp
+  tempCodeVal = ((float)s_hotCount + ((float)s_hotTemp - lowAlarmTemp) * s_roomC_hotC / s_hot_ROOM);
     TEMPMON_TEMPSENSE2 |= (((uint32_t)(((uint32_t)(tempCodeVal)) << 0U)) & 0xFFFU);
 
   //Start temp monitoring
